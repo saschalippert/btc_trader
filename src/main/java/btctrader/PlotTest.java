@@ -7,6 +7,7 @@ import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.plotly.Plot;
+import tech.tablesaw.plotly.api.OHLCPlot;
 import tech.tablesaw.plotly.api.TimeSeriesPlot;
 
 public class PlotTest {
@@ -29,6 +30,18 @@ public class PlotTest {
 		
 		
 		Plot.show(TimeSeriesPlot.create(function.name(), function, "x", "y"));
+		
+		is = PlotTest.class.getClassLoader().getResourceAsStream("ohlcdata.csv");
+		
+		Table priceTable = Table.read().csv(is);
+		
+		Plot.show(OHLCPlot.create("Prices", 	// The plot title 
+                priceTable, 	// the table we loaded earlier
+                "date",		// our time variable
+                "open", 		// the price data...
+                "high", 
+                "low", 
+                "close"));
 	}
 
 }
