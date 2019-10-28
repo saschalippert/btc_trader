@@ -5,9 +5,9 @@ import java.time.LocalDateTime;
 public class Order {
 	private OrderSide side;
 
-	private double entry;
+	private double entryPrice;
 
-	private double exit;
+	private double exitPrice;
 
 	private LocalDateTime entryTime;
 
@@ -16,7 +16,7 @@ public class Order {
 	public Order(OrderSide side, double entry, LocalDateTime entryTime) {
 		super();
 		this.side = side;
-		this.entry = entry;
+		this.entryPrice = entry;
 		this.entryTime = entryTime;
 	}
 
@@ -28,20 +28,20 @@ public class Order {
 		this.side = side;
 	}
 
-	public double getEntry() {
-		return entry;
+	public double getEntryPrice() {
+		return entryPrice;
 	}
 
-	public void setEntry(double entry) {
-		this.entry = entry;
+	public void setEntryPrice(double entry) {
+		this.entryPrice = entry;
 	}
 
-	public double getExit() {
-		return exit;
+	public double getExitPrice() {
+		return exitPrice;
 	}
 
-	public void setExit(double exit) {
-		this.exit = exit;
+	public void setExitPrice(double exit) {
+		this.exitPrice = exit;
 	}
 
 	public LocalDateTime getEntryTime() {

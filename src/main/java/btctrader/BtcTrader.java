@@ -13,6 +13,7 @@ import btctrader.data.Candle;
 import btctrader.data.History;
 import btctrader.data.Product;
 import btctrader.data.handler.DataHandler;
+import btctrader.observer.BalanceObserver;
 import btctrader.order.Order;
 import btctrader.order.OrderFactory;
 import btctrader.order.OrderSide;
@@ -32,6 +33,7 @@ public class BtcTrader {
 	private Order order;
 	private List<Order> orderHistory = new ArrayList<Order>();
 	private double balance = 100000;
+	private List<BalanceObserver> balanceObservers = new ArrayList<BalanceObserver>();
 
 	public void trade(LocalDateTime start, Duration duration, Period period, Product product) {
 		History history = dataHandler.load(start, duration, period, product);
@@ -58,23 +60,28 @@ public class BtcTrader {
 		ClosingDecision decision = closingStrategy.decide(order);
 		
 		if(ClosingDecision.CLOSE.equals(decision)) {
-			order.setExit(candle.getClose());
+			order.setExitPrice(candle.getClose());
 			order.setExitTime(candle.getTime());
 			orderHistory.add(order);
 			
-			double profitLoss = order.getExit() - order.getEntry();
-			
-			if(OrderSide.SHORT.equals(order.getSide())) {
-				profitLoss = profitLoss * -1;
-			}
-			
-			balance += profitLoss;
-			
-			LOGGER.info("profitLoss " + profitLoss);
-			LOGGER.info("new balance " + balance);
+			calculateBalance();
 			
 			order = null;
 		}
+	}
+
+	private void calculateBalance() {
+		double profitLoss = order.getExitPrice() - order.getEntryPrice();
+		
+		if(OrderSide.SHORT.equals(order.getSide())) {
+			profitLoss = profitLoss * -1;
+		}
+		
+		double newBalance = balance + profitLoss;
+		
+		balanceObservers.stream().forEach(o -> o.balanceChanged(balance, newBalance));
+		
+		balance = newBalance;
 	}
 
 	public static void main(String[] args) {
