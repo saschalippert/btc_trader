@@ -1,8 +1,8 @@
 package btctrader;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,8 +35,8 @@ public class BtcTrader {
 	private double balance = 100000;
 	private List<BalanceObserver> balanceObservers = new ArrayList<BalanceObserver>();
 
-	public void trade(LocalDateTime start, Duration duration, Period period, Product product) {
-		History history = dataHandler.load(start, duration, period, product);
+	public void trade(LocalDateTime start, Period delta, ChronoUnit aggregation, Product product) {
+		History history = dataHandler.load(start, delta, aggregation, product);
 		history.getCandles().stream().forEach(c -> replay(c));
 	}
 
