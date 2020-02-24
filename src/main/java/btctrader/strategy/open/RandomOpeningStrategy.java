@@ -14,7 +14,6 @@ public class RandomOpeningStrategy implements OpeningStrategy{
 
 	@Override
 	public OpeningDecision decide() {
-		int randInt = new Random().nextInt(3);
-		return OpeningDecision.values()[randInt];
+		return OpeningDecision.NONE;
 	}
 }
