@@ -1,6 +1,5 @@
 package btctrader.data;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.temporal.ChronoUnit;

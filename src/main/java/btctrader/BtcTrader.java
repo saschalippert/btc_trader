@@ -14,22 +14,27 @@ import btctrader.data.History;
 import btctrader.data.Product;
 import btctrader.data.handler.DataHandler;
 import btctrader.observer.BalanceObserver;
+import btctrader.observer.BalanceObserverImpl;
 import btctrader.order.Order;
 import btctrader.order.OrderFactory;
+import btctrader.order.OrderFactoryImpl;
 import btctrader.order.OrderSide;
 import btctrader.strategy.close.ClosingDecision;
 import btctrader.strategy.close.ClosingStrategy;
+import btctrader.strategy.close.RandomClosingStrategy;
 import btctrader.strategy.open.OpeningDecision;
 import btctrader.strategy.open.OpeningStrategy;
+import btctrader.strategy.open.RandomOpeningStrategy;
 
 public class BtcTrader {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BtcTrader.class);
 
 	private DataHandler dataHandler;
-	private OpeningStrategy openingStrategy;
-	private ClosingStrategy closingStrategy;
-	private OrderFactory orderFactory;
+	private OpeningStrategy openingStrategy = new RandomOpeningStrategy();
+	private ClosingStrategy closingStrategy = new RandomClosingStrategy();
+	private OrderFactory orderFactory = new OrderFactoryImpl();
+
 	private Order order;
 	private List<Order> orderHistory = new ArrayList<Order>();
 	private double balance = 100000;
@@ -87,8 +92,14 @@ public class BtcTrader {
 		balance = newBalance;
 	}
 
+	public void addObserver(BalanceObserver balanceObserver) {
+		balanceObservers.add(balanceObserver);
+	}
+
 	public static void main(String[] args) {
 		BtcTrader btcTrader = new BtcTrader();
+		btcTrader.addObserver(new BalanceObserverImpl());
+
 		btcTrader.trade(LocalDateTime.of(2016, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
 	}
 }
