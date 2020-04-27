@@ -52,39 +52,43 @@ public class BtcTrader {
 	}
 
 	private void decideOpen(Candle candle) {
-		OpeningDecision decision = openingStrategy.decide();		
-		order = orderFactory.build(decision, candle.getClose(), candle.getTime());
+		OpeningDecision decision = openingStrategy.decide();
+
+		if (!OpeningDecision.NONE.equals(decision)) {
+			order = orderFactory.build(decision, candle.getClose(), candle.getTime());
+		}
 	}
 
 	private void decideClose(Candle candle) {
 		ClosingDecision decision = closingStrategy.decide(order);
-		
-		if(ClosingDecision.CLOSE.equals(decision)) {
+
+		if (ClosingDecision.CLOSE.equals(decision)) {
 			order.setExitPrice(candle.getClose());
 			order.setExitTime(candle.getTime());
 			orderHistory.add(order);
-			
+
 			calculateBalance();
-			
+
 			order = null;
 		}
 	}
 
 	private void calculateBalance() {
 		double profitLoss = order.getExitPrice() - order.getEntryPrice();
-		
-		if(OrderSide.SHORT.equals(order.getSide())) {
+
+		if (OrderSide.SHORT.equals(order.getSide())) {
 			profitLoss = profitLoss * -1;
 		}
-		
+
 		double newBalance = balance + profitLoss;
-		
+
 		balanceObservers.stream().forEach(o -> o.balanceChanged(balance, newBalance));
-		
+
 		balance = newBalance;
 	}
 
 	public static void main(String[] args) {
-		LOGGER.info("Hello World");
+		BtcTrader btcTrader = new BtcTrader();
+		btcTrader.trade(LocalDateTime.of(2016, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
 	}
 }

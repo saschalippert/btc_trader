@@ -1,7 +1,5 @@
 package btctrader.strategy.open;
 
-import java.util.Random;
-
 import btctrader.data.Candle;
 
 public class RandomOpeningStrategy implements OpeningStrategy{
