@@ -24,11 +24,11 @@ import btctrader.order.OrderSide;
 import btctrader.strategy.close.ClosingDecision;
 import btctrader.strategy.close.ClosingStrategy;
 import btctrader.strategy.close.ClosingStrategyLoggingDecorator;
-import btctrader.strategy.close.RandomClosingStrategy;
+import btctrader.strategy.close.TrendClosingStrategy;
 import btctrader.strategy.open.OpeningDecision;
 import btctrader.strategy.open.OpeningStrategy;
 import btctrader.strategy.open.OpeningStrategyLoggingDecorator;
-import btctrader.strategy.open.RandomOpeningStrategy;
+import btctrader.strategy.open.TrendOpeningStrategy;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
@@ -40,8 +40,8 @@ public class BtcTrader {
 	private static Logger LOGGER = LoggerFactory.getLogger(BtcTrader.class);
 
 	private DataHandler dataHandler = new DataHandlerJsonFile();
-	private OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new RandomOpeningStrategy());
-	private ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new RandomClosingStrategy());
+	private OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new TrendOpeningStrategy());
+	private ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new TrendClosingStrategy());
 	private OrderFactory orderFactory = new OrderFactoryImpl();
 
 	private Order order;
@@ -110,7 +110,7 @@ public class BtcTrader {
 		BalanceObserverImpl observerImpl = new BalanceObserverImpl();
 		btcTrader.addObserver(observerImpl);
 
-		btcTrader.trade(LocalDateTime.of(2016, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
+		btcTrader.trade(LocalDateTime.of(2018, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
 		
 		
 		int[] x = IntStream.range(1, observerImpl.getBalances().size() + 1).toArray();
