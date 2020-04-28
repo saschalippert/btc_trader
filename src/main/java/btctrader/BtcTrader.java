@@ -5,6 +5,7 @@ import java.time.Period;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,7 @@ import btctrader.data.Candle;
 import btctrader.data.History;
 import btctrader.data.Product;
 import btctrader.data.handler.DataHandler;
+import btctrader.data.handler.DataHandlerJsonFile;
 import btctrader.observer.BalanceObserver;
 import btctrader.observer.BalanceObserverImpl;
 import btctrader.order.Order;
@@ -21,18 +23,25 @@ import btctrader.order.OrderFactoryImpl;
 import btctrader.order.OrderSide;
 import btctrader.strategy.close.ClosingDecision;
 import btctrader.strategy.close.ClosingStrategy;
+import btctrader.strategy.close.ClosingStrategyLoggingDecorator;
 import btctrader.strategy.close.RandomClosingStrategy;
 import btctrader.strategy.open.OpeningDecision;
 import btctrader.strategy.open.OpeningStrategy;
+import btctrader.strategy.open.OpeningStrategyLoggingDecorator;
 import btctrader.strategy.open.RandomOpeningStrategy;
+import tech.tablesaw.api.DoubleColumn;
+import tech.tablesaw.api.IntColumn;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.plotly.Plot;
+import tech.tablesaw.plotly.api.TimeSeriesPlot;
 
 public class BtcTrader {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BtcTrader.class);
 
-	private DataHandler dataHandler;
-	private OpeningStrategy openingStrategy = new RandomOpeningStrategy();
-	private ClosingStrategy closingStrategy = new RandomClosingStrategy();
+	private DataHandler dataHandler = new DataHandlerJsonFile();
+	private OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new RandomOpeningStrategy());
+	private ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new RandomClosingStrategy());
 	private OrderFactory orderFactory = new OrderFactoryImpl();
 
 	private Order order;
@@ -98,8 +107,22 @@ public class BtcTrader {
 
 	public static void main(String[] args) {
 		BtcTrader btcTrader = new BtcTrader();
-		btcTrader.addObserver(new BalanceObserverImpl());
+		BalanceObserverImpl observerImpl = new BalanceObserverImpl();
+		btcTrader.addObserver(observerImpl);
 
 		btcTrader.trade(LocalDateTime.of(2016, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
+		
+		
+		int[] x = IntStream.range(1, observerImpl.getBalances().size() + 1).toArray();
+		double[] y = observerImpl.getBalances().stream().mapToDouble(d -> d).toArray();
+
+		Table function =
+		    Table.create("Function")
+		        .addColumns(
+		            IntColumn.create("x", x),
+		            DoubleColumn.create("y", y));
+		
+		
+		Plot.show(TimeSeriesPlot.create(function.name(), function, "x", "y"));
 	}
 }

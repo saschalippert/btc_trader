@@ -1,24 +1,61 @@
 package btctrader.data.handler;
 
-import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.TimeZone;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import btctrader.data.Candle;
+import btctrader.data.History;
+import btctrader.data.Product;
+import btctrader.data.builder.DataBuilderHistory;
 import btctrader.data.handler.json.JsonCandle;
 
-public class DataHandlerJsonFile {
+public class DataHandlerJsonFile implements DataHandler {
 
-	private final static String PATH = "btceur1h/btceur1h_2016_01_01.json";
+	@Override
+	public History load(LocalDateTime start, Period delta, ChronoUnit aggregation, Product product) {
+		String prefix = product.name().toLowerCase();
 
-	public static void main(String[] args) throws JsonParseException, JsonMappingException, IOException {
+		if (ChronoUnit.HOURS.equals(aggregation)) {
+			prefix += "1h";
+		}
+
 		ObjectMapper mapper = new ObjectMapper();
+		TypeReference<Map<String, JsonCandle>> typeRef = new TypeReference<Map<String, JsonCandle>>() {
+		};
 
-		TypeReference<Map<String, JsonCandle>> typeRef = new TypeReference<Map<String, JsonCandle>>() {};
-		Map<String, JsonCandle> candles = mapper.readValue(DataHandlerJsonFile.class.getClassLoader().getResourceAsStream(PATH), typeRef);
-		System.out.println(candles);
+		LocalDateTime end = start.plus(delta);
+		
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy_MM_dd");
+		
+		DataBuilderHistory builderHistory = new DataBuilderHistory(start, delta, aggregation, product);
+
+		for (LocalDateTime current = start; current.isBefore(end) || current.isEqual(end); current = current.plusDays(1)) {
+			String dateString = current.format(formatter);
+			String path = prefix + "/" + prefix + "_" + dateString + ".json";
+			
+			try {
+				Map<String, JsonCandle> candles = mapper.readValue(DataHandlerJsonFile.class.getClassLoader().getResourceAsStream(path), typeRef);
+				
+				for (JsonCandle jsonCandle : candles.values()) {
+					Instant instant = Instant.ofEpochSecond(jsonCandle.getTime());
+					LocalDateTime time = LocalDateTime.ofInstant(instant, TimeZone.getTimeZone("GMT").toZoneId());
+					Candle candle = new Candle(time, jsonCandle.getLow(), jsonCandle.getHigh(), jsonCandle.getOpen(), jsonCandle.getClose(), jsonCandle.getVolume());
+					builderHistory.addCandle(candle);
+				}
+				
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		return builderHistory.build();
 	}
 }
