@@ -39,15 +39,24 @@ public class BtcTrader {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BtcTrader.class);
 
-	private DataHandler dataHandler = new DataHandlerJsonFile();
-	private OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new TrendOpeningStrategy());
-	private ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new TrendClosingStrategy());
-	private OrderFactory orderFactory = new OrderFactoryImpl();
+	private DataHandler dataHandler;
+	private OpeningStrategy openingStrategy;
+	private ClosingStrategy closingStrategy;
+	private OrderFactory orderFactory;
 
 	private Order order;
 	private List<Order> orderHistory = new ArrayList<Order>();
 	private double balance = 100000;
 	private List<BalanceObserver> balanceObservers = new ArrayList<BalanceObserver>();
+
+	public BtcTrader(DataHandler dataHandler, OpeningStrategy openingStrategy, ClosingStrategy closingStrategy,
+			OrderFactory orderFactory) {
+		super();
+		this.dataHandler = dataHandler;
+		this.openingStrategy = openingStrategy;
+		this.closingStrategy = closingStrategy;
+		this.orderFactory = orderFactory;
+	}
 
 	public void trade(LocalDateTime start, Period delta, ChronoUnit aggregation, Product product) {
 		History history = dataHandler.load(start, delta, aggregation, product);
@@ -106,23 +115,22 @@ public class BtcTrader {
 	}
 
 	public static void main(String[] args) {
-		BtcTrader btcTrader = new BtcTrader();
+		DataHandler dataHandler = new DataHandlerJsonFile();
+		OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new TrendOpeningStrategy());
+		ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new TrendClosingStrategy());
+		OrderFactory orderFactory = new OrderFactoryImpl();
+
+		BtcTrader btcTrader = new BtcTrader(dataHandler, openingStrategy, closingStrategy, orderFactory);
 		BalanceObserverImpl observerImpl = new BalanceObserverImpl();
 		btcTrader.addObserver(observerImpl);
 
 		btcTrader.trade(LocalDateTime.of(2018, 01, 01, 0, 0), Period.ofDays(100), ChronoUnit.HOURS, Product.BTCEUR);
-		
-		
+
 		int[] x = IntStream.range(1, observerImpl.getBalances().size() + 1).toArray();
 		double[] y = observerImpl.getBalances().stream().mapToDouble(d -> d).toArray();
 
-		Table function =
-		    Table.create("Function")
-		        .addColumns(
-		            IntColumn.create("x", x),
-		            DoubleColumn.create("y", y));
-		
-		
+		Table function = Table.create("Function").addColumns(IntColumn.create("x", x), DoubleColumn.create("y", y));
+
 		Plot.show(TimeSeriesPlot.create(function.name(), function, "x", "y"));
 	}
 }
