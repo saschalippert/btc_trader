@@ -9,54 +9,53 @@ import java.util.stream.IntStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.stereotype.Component;
 
 import btctrader.data.Candle;
 import btctrader.data.History;
 import btctrader.data.Product;
 import btctrader.data.handler.DataHandler;
-import btctrader.data.handler.DataHandlerJsonFile;
 import btctrader.observer.BalanceObserver;
 import btctrader.observer.BalanceObserverImpl;
 import btctrader.order.Order;
 import btctrader.order.OrderFactory;
-import btctrader.order.OrderFactoryImpl;
 import btctrader.order.OrderSide;
 import btctrader.strategy.close.ClosingDecision;
 import btctrader.strategy.close.ClosingStrategy;
-import btctrader.strategy.close.ClosingStrategyLoggingDecorator;
-import btctrader.strategy.close.TrendClosingStrategy;
 import btctrader.strategy.open.OpeningDecision;
 import btctrader.strategy.open.OpeningStrategy;
-import btctrader.strategy.open.OpeningStrategyLoggingDecorator;
-import btctrader.strategy.open.TrendOpeningStrategy;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.IntColumn;
 import tech.tablesaw.api.Table;
 import tech.tablesaw.plotly.Plot;
 import tech.tablesaw.plotly.api.TimeSeriesPlot;
 
+@Component
 public class BtcTrader {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(BtcTrader.class);
 
+	@Autowired
 	private DataHandler dataHandler;
+	
+	@Autowired
+	@Qualifier("openingStrategyLoggingDecorator")
 	private OpeningStrategy openingStrategy;
+	
+	@Autowired
+	@Qualifier("closingStrategyLoggingDecorator")
 	private ClosingStrategy closingStrategy;
+	
+	@Autowired
 	private OrderFactory orderFactory;
 
 	private Order order;
 	private List<Order> orderHistory = new ArrayList<Order>();
 	private double balance = 100000;
 	private List<BalanceObserver> balanceObservers = new ArrayList<BalanceObserver>();
-
-	public BtcTrader(DataHandler dataHandler, OpeningStrategy openingStrategy, ClosingStrategy closingStrategy,
-			OrderFactory orderFactory) {
-		super();
-		this.dataHandler = dataHandler;
-		this.openingStrategy = openingStrategy;
-		this.closingStrategy = closingStrategy;
-		this.orderFactory = orderFactory;
-	}
 
 	public void trade(LocalDateTime start, Period delta, ChronoUnit aggregation, Product product) {
 		History history = dataHandler.load(start, delta, aggregation, product);
@@ -115,12 +114,10 @@ public class BtcTrader {
 	}
 
 	public static void main(String[] args) {
-		DataHandler dataHandler = new DataHandlerJsonFile();
-		OpeningStrategy openingStrategy = new OpeningStrategyLoggingDecorator(new TrendOpeningStrategy());
-		ClosingStrategy closingStrategy = new ClosingStrategyLoggingDecorator(new TrendClosingStrategy());
-		OrderFactory orderFactory = new OrderFactoryImpl();
+		AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("btctrader");
 
-		BtcTrader btcTrader = new BtcTrader(dataHandler, openingStrategy, closingStrategy, orderFactory);
+		BtcTrader btcTrader = context.getBean(BtcTrader.class);
+		
 		BalanceObserverImpl observerImpl = new BalanceObserverImpl();
 		btcTrader.addObserver(observerImpl);
 

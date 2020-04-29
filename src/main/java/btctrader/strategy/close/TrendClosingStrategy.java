@@ -1,9 +1,12 @@
 package btctrader.strategy.close;
 
+import org.springframework.stereotype.Component;
+
 import btctrader.data.Candle;
 import btctrader.order.Order;
 import btctrader.order.OrderSide;
 
+@Component
 public class TrendClosingStrategy implements ClosingStrategy {
 
 	Candle oldCandle;

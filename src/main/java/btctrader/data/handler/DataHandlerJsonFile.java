@@ -8,6 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.springframework.stereotype.Component;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -17,6 +19,7 @@ import btctrader.data.Product;
 import btctrader.data.builder.DataBuilderHistory;
 import btctrader.data.handler.json.JsonCandle;
 
+@Component
 public class DataHandlerJsonFile implements DataHandler {
 
 	@Override

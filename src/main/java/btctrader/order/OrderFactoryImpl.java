@@ -2,8 +2,11 @@ package btctrader.order;
 
 import java.time.LocalDateTime;
 
+import org.springframework.stereotype.Component;
+
 import btctrader.strategy.open.OpeningDecision;
 
+@Component
 public class OrderFactoryImpl implements OrderFactory {
 
 	@Override

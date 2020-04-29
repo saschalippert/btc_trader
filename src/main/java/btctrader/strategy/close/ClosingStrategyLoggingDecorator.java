@@ -1,16 +1,18 @@
 package btctrader.strategy.close;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import btctrader.data.Candle;
 import btctrader.order.Order;
 
+@Component
 public class ClosingStrategyLoggingDecorator implements ClosingStrategy {
 
+	@Autowired
+	@Qualifier("trendClosingStrategy")
 	ClosingStrategy closingStrategy;
-
-	public ClosingStrategyLoggingDecorator(ClosingStrategy closingStrategy) {
-		super();
-		this.closingStrategy = closingStrategy;
-	}
 
 	@Override
 	public void review(Candle candle) {

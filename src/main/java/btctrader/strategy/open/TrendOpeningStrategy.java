@@ -1,7 +1,10 @@
 package btctrader.strategy.open;
 
+import org.springframework.stereotype.Component;
+
 import btctrader.data.Candle;
 
+@Component
 public class TrendOpeningStrategy implements OpeningStrategy {
 
 	Candle oldCandle;
